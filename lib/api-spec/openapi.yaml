@@ -3,20 +3,24 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Thermoscope AI command-center API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: fires
+  - name: incidents
+  - name: intelligence
+  - name: analytics
+  - name: copilot
+  - name: reports
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +28,620 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [intelligence]
+      summary: Get dashboard overview
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /fires:
+    get:
+      operationId: getFires
+      tags: [fires]
+      summary: List thermal observations
+      parameters:
+        - $ref: "#/components/parameters/DateParam"
+        - $ref: "#/components/parameters/ConfidenceParam"
+        - $ref: "#/components/parameters/SatelliteParam"
+        - $ref: "#/components/parameters/DayNightParam"
+      responses:
+        "200":
+          description: Thermal observations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ThermalObservation"
+  /fires/{id}:
+    get:
+      operationId: getFire
+      tags: [fires]
+      summary: Get a thermal observation
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Thermal observation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThermalObservation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /incidents:
+    get:
+      operationId: getIncidents
+      tags: [incidents]
+      summary: List analyzed incidents
+      parameters:
+        - $ref: "#/components/parameters/RiskLevelParam"
+        - $ref: "#/components/parameters/ClassificationParam"
+      responses:
+        "200":
+          description: Incidents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Incident"
+  /incidents/{id}:
+    get:
+      operationId: getIncident
+      tags: [incidents]
+      summary: Get incident details
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Incident detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /incidents/{id}/context:
+    get:
+      operationId: getIncidentContext
+      tags: [incidents]
+      summary: Get nearby geospatial context
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Nearby context
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContextFeature"
+  /incidents/{id}/history:
+    get:
+      operationId: getIncidentHistory
+      tags: [incidents]
+      summary: Get detection history
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Detection history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HistoryPoint"
+  /persistent-sources:
+    get:
+      operationId: getPersistentSources
+      tags: [intelligence]
+      summary: List persistent thermal sources
+      responses:
+        "200":
+          description: Persistent sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PersistentSource"
+  /alerts:
+    get:
+      operationId: getAlerts
+      tags: [intelligence]
+      summary: List risk alerts
+      responses:
+        "200":
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+  /alerts/{id}:
+    patch:
+      operationId: updateAlertStatus
+      tags: [intelligence]
+      summary: Update alert status
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AlertStatusInput"
+      responses:
+        "200":
+          description: Updated alert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /analytics:
+    get:
+      operationId: getAnalytics
+      tags: [analytics]
+      summary: Get thermal analytics
+      parameters:
+        - name: range
+          in: query
+          schema:
+            type: string
+            enum: [24h, 7d, 30d]
+            default: 7d
+      responses:
+        "200":
+          description: Analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /system-status:
+    get:
+      operationId: getSystemStatus
+      tags: [intelligence]
+      summary: Get pipeline status
+      responses:
+        "200":
+          description: System status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemStatus"
+  /search:
+    get:
+      operationId: searchIncidents
+      tags: [incidents]
+      summary: Search incidents and locations
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SearchResult"
+  /copilot:
+    post:
+      operationId: askCopilot
+      tags: [copilot]
+      summary: Ask Thermoscope Copilot about current data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CopilotInput"
+      responses:
+        "200":
+          description: Copilot response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CopilotResponse"
+  /classify:
+    post:
+      operationId: classifyObservation
+      tags: [intelligence]
+      summary: Classify a thermal observation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClassifyInput"
+      responses:
+        "200":
+          description: Prototype classification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassificationResult"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /analyze:
+    post:
+      operationId: analyzeObservation
+      tags: [intelligence]
+      summary: Run the full anomaly analysis pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeInput"
+      responses:
+        "200":
+          description: Full analyzed incident
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /reports:
+    post:
+      operationId: generateReport
+      tags: [reports]
+      summary: Generate an incident report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportInput"
+      responses:
+        "200":
+          description: Report payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentReport"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    DateParam:
+      name: date
+      in: query
+      schema:
+        type: string
+    ConfidenceParam:
+      name: confidence
+      in: query
+      schema:
+        type: string
+        enum: [low, nominal, high]
+    SatelliteParam:
+      name: satellite
+      in: query
+      schema:
+        type: string
+    DayNightParam:
+      name: dayNight
+      in: query
+      schema:
+        type: string
+        enum: [D, N]
+    RiskLevelParam:
+      name: riskLevel
+      in: query
+      schema:
+        type: string
+        enum: [LOW, MODERATE, HIGH, CRITICAL]
+    ClassificationParam:
+      name: classification
+      in: query
+      schema:
+        type: string
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
-
+      required: [status]
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    ThermalObservation:
+      type: object
+      properties:
+        id: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+        timestamp: { type: string }
+        brightness: { type: number }
+        frp: { type: number }
+        confidence: { type: string }
+        satellite: { type: string }
+        instrument: { type: string }
+        dayNight: { type: string }
+        source: { type: string }
+        scenario: { type: string }
+      required: [id, latitude, longitude, timestamp, brightness, frp, confidence, satellite, instrument, dayNight, source, scenario]
+    Incident:
+      type: object
+      properties:
+        id: { type: string }
+        observationId: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+        timestamp: { type: string }
+        classification: { type: string }
+        classificationLabel: { type: string }
+        confidence: { type: number }
+        riskScore: { type: number }
+        riskLevel: { type: string }
+        persistenceLevel: { type: string }
+        persistenceScore: { type: number }
+        status: { type: string }
+        locationName: { type: string }
+        scenario: { type: string }
+      required: [id, observationId, latitude, longitude, timestamp, classification, classificationLabel, confidence, riskScore, riskLevel, persistenceLevel, persistenceScore, status, locationName, scenario]
+    RiskBreakdown:
+      type: object
+      properties:
+        thermal: { type: number }
+        firmsConfidence: { type: number }
+        persistence: { type: number }
+        industrialProximity: { type: number }
+        populationProximity: { type: number }
+        clusterDensity: { type: number }
+        nightActivity: { type: number }
+        final: { type: number }
+      required: [thermal, firmsConfidence, persistence, industrialProximity, populationProximity, clusterDensity, nightActivity, final]
+    FeatureContribution:
+      type: object
+      properties:
+        label: { type: string }
+        detail: { type: string }
+        positive: { type: boolean }
+      required: [label, detail, positive]
+    ContextFeature:
+      type: object
+      properties:
+        featureType: { type: string }
+        featureName: { type: string }
+        distanceKm: { type: number }
+        source: { type: string }
+      required: [featureType, featureName, distanceKm, source]
+    HistoryPoint:
+      type: object
+      properties:
+        timestamp: { type: string }
+        brightness: { type: number }
+        frp: { type: number }
+        dayNight: { type: string }
+      required: [timestamp, brightness, frp, dayNight]
+    IncidentDetail:
+      allOf:
+        - $ref: "#/components/schemas/Incident"
+        - type: object
+          properties:
+            observation: { $ref: "#/components/schemas/ThermalObservation" }
+            explanation: { type: string }
+            contributions:
+              type: array
+              items: { $ref: "#/components/schemas/FeatureContribution" }
+            breakdown: { $ref: "#/components/schemas/RiskBreakdown" }
+            context:
+              type: array
+              items: { $ref: "#/components/schemas/ContextFeature" }
+            history:
+              type: array
+              items: { $ref: "#/components/schemas/HistoryPoint" }
+            modelVersion: { type: string }
+          required: [observation, explanation, contributions, breakdown, context, history, modelVersion]
+    PersistentSource:
+      type: object
+      properties:
+        id: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+        locationName: { type: string }
+        firstDetected: { type: string }
+        lastDetected: { type: string }
+        detectionCount: { type: number }
+        activeDays: { type: number }
+        averageBrightness: { type: number }
+        maximumBrightness: { type: number }
+        persistenceScore: { type: number }
+        riskScore: { type: number }
+        classification: { type: string }
+        classificationLabel: { type: string }
+      required: [id, latitude, longitude, locationName, firstDetected, lastDetected, detectionCount, activeDays, averageBrightness, maximumBrightness, persistenceScore, riskScore, classification, classificationLabel]
+    Alert:
+      type: object
+      properties:
+        id: { type: string }
+        incidentId: { type: string }
+        createdAt: { type: string }
+        locationName: { type: string }
+        classificationLabel: { type: string }
+        confidence: { type: number }
+        riskScore: { type: number }
+        riskLevel: { type: string }
+        persistenceLevel: { type: string }
+        severity: { type: string }
+        title: { type: string }
+        message: { type: string }
+        status: { type: string }
+      required: [id, incidentId, createdAt, locationName, classificationLabel, confidence, riskScore, riskLevel, persistenceLevel, severity, title, message, status]
+    AlertStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [NEW, INVESTIGATING, ACKNOWLEDGED, RESOLVED]
+      required: [status]
+    DashboardSummary:
+      type: object
+      properties:
+        activeAnomalies: { type: number }
+        likelyIndustrialFires: { type: number }
+        persistentSources: { type: number }
+        criticalIncidents: { type: number }
+        highIncidents: { type: number }
+        newAlerts: { type: number }
+        avgRiskScore: { type: number }
+        lastUpdate: { type: string }
+        incidents:
+          type: array
+          items: { $ref: "#/components/schemas/Incident" }
+      required: [activeAnomalies, likelyIndustrialFires, persistentSources, criticalIncidents, highIncidents, newAlerts, avgRiskScore, lastUpdate, incidents]
+    Analytics:
+      type: object
+      properties:
+        range: { type: string }
+        trend:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string }
+              anomalies: { type: number }
+              industrial: { type: number }
+              persistent: { type: number }
+              wildfire: { type: number }
+              agricultural: { type: number }
+            required: [date, anomalies, industrial, persistent, wildfire, agricultural]
+        riskDistribution:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              value: { type: number }
+            required: [name, value]
+        dayNight:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              value: { type: number }
+            required: [name, value]
+        satellite:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              value: { type: number }
+            required: [name, value]
+      required: [range, trend, riskDistribution, dayNight, satellite]
+    SystemStatus:
+      type: object
+      properties:
+        firms: { type: string }
+        osm: { type: string }
+        classification: { type: string }
+        persistence: { type: string }
+        risk: { type: string }
+        database: { type: string }
+        dataMode: { type: string }
+        modelVersion: { type: string }
+        lastUpdate: { type: string }
+      required: [firms, osm, classification, persistence, risk, database, dataMode, modelVersion, lastUpdate]
+    SearchResult:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        subtitle: { type: string }
+        riskLevel: { type: string }
+      required: [id, type, title, subtitle, riskLevel]
+    CopilotInput:
+      type: object
+      properties:
+        question:
+          type: string
+          minLength: 1
+        incidentId: { type: ["string", "null"] }
+      required: [question]
+    CopilotResponse:
+      type: object
+      properties:
+        answer: { type: string }
+        evidence:
+          type: array
+          items: { type: string }
+        relatedIncidentIds:
+          type: array
+          items: { type: string }
+      required: [answer, evidence, relatedIncidentIds]
+    ClassifyInput:
+      type: object
+      properties:
+        observationId:
+          type: string
+      required: [observationId]
+    AnalyzeInput:
+      type: object
+      properties:
+        observationId:
+          type: string
+      required: [observationId]
+    ClassificationResult:
+      type: object
+      properties:
+        classification: { type: string }
+        classificationLabel: { type: string }
+        confidence: { type: number }
+        modelVersion: { type: string }
+        featureContributions:
+          type: array
+          items: { $ref: "#/components/schemas/FeatureContribution" }
+      required: [classification, classificationLabel, confidence, modelVersion, featureContributions]
+    ReportInput:
+      type: object
+      properties:
+        incidentId:
+          type: string
+      required: [incidentId]
+    IncidentReport:
+      type: object
+      properties:
+        title: { type: string }
+        generatedAt: { type: string }
+        incident: { $ref: "#/components/schemas/IncidentDetail" }
+      required: [title, generatedAt, incident]

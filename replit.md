@@ -1,6 +1,6 @@
-# [Project name]
+# Thermoscope AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Thermoscope AI is a satellite intelligence command center that turns thermal anomaly observations into explainable classifications, persistence signals, risk scores, alerts, and incident briefs.
 
 ## Run & Operate
 
@@ -22,23 +22,35 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/thermoscope-ai/src/App.tsx` — responsive command-center UI and routed pages.
+- `artifacts/thermoscope-ai/src/index.css` — visual tokens, map surface, texture, and motion.
+- `artifacts/api-server/src/routes/thermoscope.ts` — deterministic FIRMS-style demo pipeline and API routes.
+- `lib/api-spec/openapi.yaml` — source of truth for generated API hooks and validation schemas.
+- `lib/db/src/schema/thermoscope.ts` — PostgreSQL schema for observations, incidents, context, classifications, risk scores, persistent sources, and alerts.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first release uses a fixed, seeded demo dataset so SIH judging flows are repeatable and clearly labeled DEMO.
+- The classification layer is a transparent prototype service with feature contributions, not a claimed trained XGBoost model.
+- Risk scoring follows the brief's weighted 0–100 formula and returns the full component breakdown for every incident.
+- The API remains modular so FIRMS/Overpass live adapters can replace the demo source without changing the frontend contract.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard overview with actual anomaly metrics, priority queue, map, and curated SIH scenario shortcuts.
+- Incident investigation with classification, confidence, persistence, nearby context, history, explanation, and risk breakdown.
+- Map explorer with filters, pan/zoom, layer toggle, markers, and risk legend.
+- Persistent sources, alert status triage, analytics, data-grounded Copilot, printable incident reports, and system health.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Keep DEMO/LIVE labeling explicit; the current source and OSM context are demo data.
+- Regenerate API hooks after changing `lib/api-spec/openapi.yaml`.
+- The app and API workflows are managed artifacts; use their existing workflow names when restarting.
 
 ## Pointers
 

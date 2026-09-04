@@ -1,0 +1,1517 @@
+# THERMOSCOPE AI — SIH PS 162
+
+## MASTER BUILD PROMPT FOR CURSOR / REPLIT
+
+You are a senior full-stack engineer, ML engineer, GIS developer, and UI/UX designer.
+
+Build a complete, functional, SIH-ready MVP for:
+
+**SIH Problem Statement 162**
+
+> AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM & Satellite Data
+
+Project name:
+
+# THERMOSCOPE AI
+
+Tagline:
+
+**From Satellite Heat Signals to Actionable Intelligence**
+
+---
+
+# 1. WHAT WE ARE BUILDING
+
+Build an AI-powered geospatial intelligence platform that:
+
+1. Receives satellite thermal anomaly observations from NASA FIRMS.
+2. Cleans and validates the observations.
+3. Uses OpenStreetMap data to understand what exists around each anomaly.
+4. Extracts thermal, temporal and geospatial features.
+5. Classifies the anomaly into a likely category.
+6. Detects whether the thermal source is persistent.
+7. Calculates a transparent 0–100 risk score.
+8. Generates alerts for high-risk incidents.
+9. Displays everything on an interactive map/dashboard.
+10. Explains WHY an anomaly received its classification and risk score.
+
+The central concept is:
+
+NASA FIRMS
+↓
+Thermal Anomaly
+↓
+OSM Context
+↓
+Feature Engineering
+↓
+ML Classification
+↓
+Spatio-Temporal Persistence
+↓
+Risk Scoring
+↓
+Alert
+↓
+Interactive Dashboard
+
+---
+
+# 2. VERY IMPORTANT — DO NOT FAKE AI
+
+This is an SIH MVP.
+
+Do NOT claim:
+
+* 100% accurate detection
+* confirmed fire from a thermal anomaly
+* real-time satellite imagery unless actually connected
+* trained XGBoost accuracy unless a real trained dataset/model exists
+* real emergency alerts unless actually implemented
+
+A FIRMS observation is a thermal anomaly.
+
+The application should use terminology such as:
+
+"Likely Industrial Fire"
+
+"Potential Persistent Thermal Source"
+
+"Thermal Anomaly"
+
+"AI-Assisted Classification"
+
+"Requires Human Verification"
+
+If real NASA FIRMS credentials are unavailable, use a deterministic seeded demo dataset.
+
+Clearly display:
+
+**DATA MODE: DEMO**
+
+or
+
+**DATA MODE: LIVE**
+
+Never pretend demo data is live.
+
+---
+
+# 3. RECOMMENDED TECHNOLOGY
+
+Build a modern full-stack web application.
+
+Frontend:
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* Lucide React
+* Leaflet or MapLibre GL JS
+* Recharts
+
+Backend:
+
+* Node.js/TypeScript API OR Python FastAPI
+* Choose the architecture that is easiest to run reliably in the current environment.
+
+Database:
+
+* PostgreSQL
+* PostGIS if available
+* SQLite fallback for local MVP if necessary
+
+ML:
+
+* Python
+* pandas
+* numpy
+* scikit-learn
+* XGBoost
+
+GIS:
+
+* GeoJSON
+* OpenStreetMap
+* Overpass API
+* Turf.js or equivalent geospatial utilities
+
+Do NOT introduce unnecessary technologies.
+
+The application must be easy to run locally through Cursor and deployable through Replit.
+
+---
+
+# 4. PROJECT ARCHITECTURE
+
+Create this architecture:
+
+```text
+                    ┌──────────────────┐
+                    │   NASA FIRMS     │
+                    │ Thermal Data     │
+                    └────────┬─────────┘
+                             │
+                             ↓
+                    ┌──────────────────┐
+                    │ DATA INGESTION   │
+                    │ API / Demo Data  │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ DATA CLEANING    │
+                    │ Validation       │
+                    │ Deduplication    │
+                    └────────┬─────────┘
+                             ↓
+          ┌──────────────────┴──────────────────┐
+          │                                     │
+          ↓                                     ↓
+┌──────────────────┐                  ┌──────────────────┐
+│ FIRMS FEATURES   │                  │ OSM CONTEXT      │
+│ Brightness       │                  │ Factory          │
+│ FRP              │                  │ Power Plant      │
+│ Confidence       │                  │ Road             │
+│ Day/Night        │                  │ Settlement       │
+│ Satellite        │                  │ Forest           │
+└────────┬─────────┘                  │ Agriculture      │
+         │                            └────────┬─────────┘
+         │                                     │
+         └────────────────┬────────────────────┘
+                          ↓
+                 ┌──────────────────┐
+                 │ FEATURE ENGINE   │
+                 └────────┬─────────┘
+                          ↓
+              ┌───────────┴───────────┐
+              ↓                       ↓
+     ┌─────────────────┐      ┌─────────────────┐
+     │ ML CLASSIFIER   │      │ PERSISTENCE     │
+     │ XGBoost         │      │ DBSCAN + Time   │
+     └────────┬────────┘      └────────┬────────┘
+              │                        │
+              └───────────┬────────────┘
+                          ↓
+                 ┌──────────────────┐
+                 │ RISK ENGINE      │
+                 │ Score 0–100      │
+                 └────────┬─────────┘
+                          ↓
+                 ┌──────────────────┐
+                 │ INCIDENT ENGINE  │
+                 └────────┬─────────┘
+                          ↓
+             ┌────────────┼────────────┐
+             ↓            ↓            ↓
+          Dashboard     Alerts       Reports
+             ↓
+       AI COPILOT
+```
+
+---
+
+# 5. DATABASE
+
+Create the following entities/tables.
+
+## thermal_observations
+
+Fields:
+
+* id
+* latitude
+* longitude
+* timestamp
+* brightness
+* frp
+* confidence
+* satellite
+* instrument
+* day_night
+* source
+* created_at
+
+---
+
+## incidents
+
+Fields:
+
+* id
+* observation_id
+* latitude
+* longitude
+* timestamp
+* classification
+* confidence
+* risk_score
+* risk_level
+* persistence_level
+* status
+* explanation
+* created_at
+
+---
+
+## persistent_sources
+
+Fields:
+
+* id
+* latitude
+* longitude
+* first_detected
+* last_detected
+* detection_count
+* active_days
+* average_brightness
+* maximum_brightness
+* persistence_score
+* risk_score
+* classification
+
+---
+
+## geospatial_context
+
+Fields:
+
+* id
+* incident_id
+* feature_type
+* feature_name
+* latitude
+* longitude
+* distance_km
+* source
+
+---
+
+## classifications
+
+Fields:
+
+* id
+* incident_id
+* predicted_class
+* confidence
+* model_version
+* feature_contributions
+* explanation
+
+---
+
+## risk_scores
+
+Fields:
+
+* id
+* incident_id
+* thermal_score
+* confidence_score
+* persistence_score
+* industrial_score
+* population_score
+* density_score
+* night_score
+* final_score
+* risk_level
+
+---
+
+## alerts
+
+Fields:
+
+* id
+* incident_id
+* severity
+* title
+* message
+* status
+* created_at
+
+---
+
+# 6. NASA FIRMS DATA
+
+Create a NASA FIRMS service.
+
+Support:
+
+* API-based data ingestion
+* CSV/JSON import
+* bundled demo dataset
+
+Use environment variables for API keys.
+
+Never hardcode credentials.
+
+Expected FIRMS fields should include, where available:
+
+* latitude
+* longitude
+* brightness
+* scan
+* track
+* acquisition date
+* acquisition time
+* satellite
+* instrument
+* confidence
+* version
+* bright_t31
+* FRP
+* day/night
+
+Normalize these fields internally.
+
+Create:
+
+```text
+GET /api/fires
+GET /api/fires/:id
+```
+
+Support filters:
+
+* date
+* bounding box
+* confidence
+* satellite
+* day/night
+
+---
+
+# 7. DEMO DATASET
+
+Create a realistic deterministic dataset containing several hundred thermal observations.
+
+Do NOT randomly generate values on every page load.
+
+The dataset must remain consistent.
+
+Create these specific scenarios:
+
+## SCENARIO 1 — INDUSTRIAL FIRE
+
+Characteristics:
+
+* high brightness
+* high confidence
+* high FRP
+* close to factory
+* multiple observations
+* night observations
+* high risk
+
+Expected:
+
+Likely Industrial Fire
+
+---
+
+## SCENARIO 2 — PERSISTENT THERMAL SOURCE
+
+Characteristics:
+
+* same approximate location
+* repeated observations over multiple days
+* moderate/high thermal intensity
+* near industrial infrastructure
+
+Expected:
+
+Persistent Thermal Source
+
+---
+
+## SCENARIO 3 — AGRICULTURAL BURNING
+
+Characteristics:
+
+* near agricultural area
+* short duration
+* moderate thermal intensity
+* no significant industrial context
+
+Expected:
+
+Agricultural Burning
+
+---
+
+## SCENARIO 4 — WILDFIRE
+
+Characteristics:
+
+* multiple nearby thermal points
+* forest/vegetation nearby
+* spatial spread
+* changing locations
+
+Expected:
+
+Vegetation/Wildfire
+
+---
+
+## SCENARIO 5 — UNCERTAIN
+
+Characteristics:
+
+* single observation
+* low confidence
+* weak context
+
+Expected:
+
+Other / Uncertain
+
+---
+
+# 8. FEATURE ENGINEERING
+
+For every observation calculate:
+
+## Thermal Features
+
+* brightness
+* FRP
+* FIRMS confidence
+* day/night
+* satellite
+* instrument
+
+## Temporal Features
+
+* detections in last 24 hours
+* detections in last 3 days
+* detections in last 7 days
+* active days
+* time since first detection
+
+## Geospatial Features
+
+* distance to nearest industrial facility
+* distance to power plant
+* distance to agricultural area
+* distance to forest
+* distance to residential area
+* distance to nearest road
+* industrial POI count within 1 km
+* industrial POI count within 3 km
+* local cluster density
+
+These features form the ML feature vector.
+
+---
+
+# 9. ML CLASSIFICATION
+
+The intended production classifier is:
+
+# XGBoost
+
+Classes:
+
+```text
+INDUSTRIAL_FIRE
+PERSISTENT_THERMAL_SOURCE
+VEGETATION_WILDFIRE
+AGRICULTURAL_BURNING
+OTHER_UNCERTAIN
+```
+
+The model should return:
+
+```json
+{
+  "classification": "INDUSTRIAL_FIRE",
+  "confidence": 0.92,
+  "model_version": "prototype-v1",
+  "feature_contributions": [
+    "High thermal intensity",
+    "High FIRMS confidence",
+    "Industrial facility nearby",
+    "Repeated observations",
+    "Night-time detections"
+  ]
+}
+```
+
+---
+
+# 10. IMPORTANT ML IMPLEMENTATION RULE
+
+If no genuine labeled dataset is available:
+
+DO NOT fabricate a trained XGBoost model.
+
+Instead implement a clearly separated:
+
+```text
+classification_service
+```
+
+with:
+
+```text
+prototype classifier
+```
+
+that uses the exact same feature vector expected by the future XGBoost model.
+
+Structure it so:
+
+```text
+Frontend
+   ↓
+API
+   ↓
+Classification Service
+   ↓
+Prototype Model
+```
+
+can later become:
+
+```text
+Frontend
+   ↓
+API
+   ↓
+Classification Service
+   ↓
+XGBoost Model
+```
+
+The UI should display:
+
+**AI MODEL: Prototype v1**
+
+until a real trained model is supplied.
+
+---
+
+# 11. PERSISTENCE ENGINE
+
+Implement spatio-temporal persistence detection.
+
+Use:
+
+**DBSCAN + temporal aggregation**
+
+Concept:
+
+Nearby thermal observations are grouped into clusters.
+
+For every cluster calculate:
+
+* first detection
+* last detection
+* detection count
+* active days
+* average brightness
+* maximum brightness
+* spatial consistency
+* persistence score
+
+Example:
+
+```text
+Day 1  🔥
+Day 2   🔥
+Day 3  🔥
+Day 4   🔥
+Day 5  🔥
+        ↓
+   Cluster #27
+        ↓
+HIGH PERSISTENCE
+```
+
+Persistence levels:
+
+```text
+LOW
+MEDIUM
+HIGH
+CRITICAL
+```
+
+---
+
+# 12. RISK ENGINE
+
+Create a transparent risk score from 0–100.
+
+Use:
+
+```text
+Thermal Intensity       25%
+FIRMS Confidence        15%
+Persistence             25%
+Industrial Proximity    15%
+Population Proximity   10%
+Cluster Density          5%
+Night Activity           5%
+```
+
+Formula:
+
+```text
+risk =
+0.25 * thermal_intensity
++ 0.15 * firms_confidence
++ 0.25 * persistence
++ 0.15 * industrial_proximity
++ 0.10 * population_proximity
++ 0.05 * cluster_density
++ 0.05 * night_activity
+```
+
+Normalize to 0–100.
+
+Risk:
+
+```text
+0–24     LOW
+25–49    MODERATE
+50–74    HIGH
+75–100   CRITICAL
+```
+
+Show the complete breakdown in the UI.
+
+---
+
+# 13. EXPLAINABILITY
+
+Every incident needs an explanation.
+
+Example:
+
+> “This anomaly is classified as a likely industrial fire because it shows high thermal intensity and FIRMS confidence, has repeated detections across multiple days, is located close to an industrial facility, and includes night-time observations.”
+
+Show evidence:
+
+```text
+✓ High thermal intensity
+✓ High FIRMS confidence
+✓ Repeated detections
+✓ Industrial facility nearby
+✓ Night-time activity
+```
+
+Do not generate explanations that contradict the actual incident data.
+
+---
+
+# 14. DASHBOARD
+
+Create a premium command-center dashboard.
+
+Top metrics:
+
+```text
+ACTIVE ANOMALIES
+127
+
+LIKELY INDUSTRIAL FIRES
+18
+
+PERSISTENT SOURCES
+11
+
+CRITICAL INCIDENTS
+4
+```
+
+These values MUST come from the actual dataset.
+
+Do not hardcode dashboard numbers independently of the database.
+
+Main section:
+
+Large interactive map.
+
+Secondary sections:
+
+* Recent critical incidents
+* Persistent sources
+* Risk distribution
+* Thermal anomaly trend
+* System status
+
+---
+
+# 15. INTERACTIVE MAP
+
+Use Leaflet or MapLibre.
+
+Show:
+
+* thermal anomalies
+* incident markers
+* persistent source clusters
+* industrial facilities
+* roads
+* settlements
+* forests
+* agricultural areas
+
+Marker colors:
+
+🔴 Critical
+
+🟠 High
+
+🟡 Moderate
+
+🟢 Low
+
+Clicking a marker must open its incident details.
+
+Include:
+
+* zoom
+* pan
+* marker clustering
+* legend
+* filters
+* map layer controls
+
+---
+
+# 16. INCIDENT DETAIL PANEL
+
+When a marker is selected:
+
+Display:
+
+```text
+INCIDENT TH-027
+
+Likely Industrial Fire
+
+Confidence
+92%
+
+Risk
+87 / 100
+CRITICAL
+
+Persistence
+HIGH
+```
+
+Then:
+
+```text
+Latitude
+Longitude
+Timestamp
+Satellite
+Brightness
+FRP
+FIRMS Confidence
+Day/Night
+```
+
+Then:
+
+### WHY FLAGGED?
+
+Show the explanation.
+
+Then:
+
+### NEARBY CONTEXT
+
+```text
+Factory             0.4 km
+Power Plant         0.8 km
+Residential Area    1.2 km
+Major Road          0.3 km
+Forest              4.1 km
+```
+
+Then:
+
+### DETECTION HISTORY
+
+Show a timeline/chart.
+
+---
+
+# 17. OSM ENRICHMENT
+
+Create an OSM/Overpass service.
+
+For each incident retrieve or simulate:
+
+* factories
+* industrial areas
+* power plants
+* refineries
+* warehouses
+* roads
+* railway
+* residential areas
+* forests
+* agricultural land
+* water bodies
+
+Calculate distances.
+
+For example:
+
+```text
+Nearest factory = 0.4 km
+Nearest power plant = 0.8 km
+Nearest residential area = 1.2 km
+```
+
+Cache API results.
+
+If OSM API is unavailable, use deterministic demo context.
+
+Display:
+
+**OSM DATA — LIVE**
+
+or
+
+**OSM DATA — DEMO**
+
+---
+
+# 18. PERSISTENT SOURCES PAGE
+
+Create:
+
+**Persistent Thermal Sources**
+
+Table:
+
+```text
+Source ID
+Location
+Classification
+First Detected
+Last Detected
+Active Days
+Detection Count
+Average Brightness
+Persistence Score
+Risk
+```
+
+Clicking a source should show:
+
+* map
+* detection timeline
+* observation history
+* risk
+* classification
+* context
+
+---
+
+# 19. ALERTS PAGE
+
+Show:
+
+```text
+Incident ID
+Time
+Location
+Classification
+Confidence
+Risk
+Persistence
+Status
+```
+
+Statuses:
+
+```text
+NEW
+INVESTIGATING
+ACKNOWLEDGED
+RESOLVED
+```
+
+High and critical incidents should generate alerts.
+
+---
+
+# 20. ANALYTICS PAGE
+
+Create charts for:
+
+* anomaly count over time
+* industrial fires
+* persistent sources
+* agricultural burns
+* wildfires
+* risk distribution
+* average thermal intensity
+* day/night distribution
+* satellite distribution
+
+Filters:
+
+```text
+24 HOURS
+7 DAYS
+30 DAYS
+```
+
+Charts must use actual data.
+
+---
+
+# 21. SEARCH
+
+Implement search for:
+
+* incident ID
+* coordinates
+* classification
+* industrial facility
+* location
+
+Example:
+
+```text
+TH-027
+```
+
+should open the correct incident.
+
+---
+
+# 22. AI COPILOT
+
+Create:
+
+# THERMOSCOPE COPILOT
+
+The Copilot answers questions about actual application data.
+
+Examples:
+
+> Which are the highest-risk industrial fires?
+
+> Show persistent sources active for more than 3 days.
+
+> Why was TH-027 classified as an industrial fire?
+
+> Which critical incident is closest to a populated area?
+
+> Summarize today's thermal anomalies.
+
+The Copilot MUST retrieve information from the application's data.
+
+Do not invent incidents or statistics.
+
+If information is unavailable:
+
+> “I don't have enough information in the current dataset.”
+
+---
+
+# 23. REPORT
+
+Create incident report generation.
+
+Report should contain:
+
+* Incident ID
+* Location
+* Map
+* Timestamp
+* Satellite
+* Thermal parameters
+* Classification
+* Confidence
+* Persistence
+* Risk score
+* Risk breakdown
+* Nearby OSM context
+* AI explanation
+* Detection history
+* Status
+
+Provide:
+
+**Generate Report**
+
+and print/PDF functionality if practical.
+
+---
+
+# 24. DEMO MODE
+
+Create a prominent DEMO MODE.
+
+Scenario buttons:
+
+```text
+INDUSTRIAL FIRE
+PERSISTENT SOURCE
+AGRICULTURAL BURN
+WILDFIRE
+CRITICAL INCIDENT
+```
+
+When clicked:
+
+1. Focus map on scenario
+2. Highlight relevant observations
+3. Open incident
+4. Show classification
+5. Show confidence
+6. Show persistence
+7. Show OSM context
+8. Show risk score
+9. Show explanation
+
+This is extremely important for SIH presentation.
+
+---
+
+# 25. SYSTEM STATUS
+
+Create:
+
+```text
+NASA FIRMS
+● DEMO / LIVE
+
+OPENSTREETMAP
+● DEMO / LIVE
+
+ML CLASSIFICATION
+● OPERATIONAL
+
+PERSISTENCE ENGINE
+● OPERATIONAL
+
+RISK ENGINE
+● OPERATIONAL
+
+DATABASE
+● CONNECTED
+```
+
+Also show:
+
+Last data update
+
+Current data mode
+
+Model version
+
+---
+
+# 26. UI DESIGN
+
+The UI must look like a professional:
+
+* satellite intelligence platform
+* GIS command center
+* emergency monitoring system
+* aerospace analytics platform
+
+Use:
+
+* dark theme
+* clean typography
+* subtle grid/background
+* professional data cards
+* high-quality charts
+* map-centric layout
+* restrained animations
+* responsive design
+
+Avoid:
+
+* generic startup landing page
+* excessive gradients
+* cartoon graphics
+* huge unnecessary headings
+* excessive rounded cards
+* fake AI animations
+
+The dashboard should immediately communicate:
+
+**SATELLITE + AI + GIS + RISK**
+
+---
+
+# 27. NAVIGATION
+
+Sidebar:
+
+```text
+THERMOSCOPE AI
+
+Dashboard
+Live Map
+Incidents
+Persistent Sources
+Alerts
+Analytics
+AI Copilot
+Reports
+System Status
+```
+
+Bottom:
+
+```text
+DATA MODE: DEMO
+MODEL: PROTOTYPE V1
+```
+
+---
+
+# 28. API STRUCTURE
+
+Create clean endpoints:
+
+```text
+GET  /api/fires
+GET  /api/fires/:id
+
+GET  /api/incidents
+GET  /api/incidents/:id
+
+GET  /api/incidents/:id/context
+GET  /api/incidents/:id/history
+
+GET  /api/persistent-sources
+
+GET  /api/alerts
+
+GET  /api/analytics
+
+GET  /api/system-status
+
+GET  /api/search
+
+POST /api/classify
+POST /api/analyze
+```
+
+Keep the backend modular.
+
+---
+
+# 29. FILE / CODE ORGANIZATION
+
+Use a clean architecture similar to:
+
+```text
+src/
+  components/
+  pages/
+  layouts/
+  hooks/
+  services/
+  types/
+  utils/
+
+backend/
+  api/
+  services/
+  models/
+  ml/
+  gis/
+  data/
+  utils/
+
+ml/
+  features/
+  models/
+  training/
+  inference/
+
+data/
+  demo/
+  geojson/
+
+database/
+  migrations/
+  seeds/
+```
+
+Separate:
+
+* UI
+* API
+* business logic
+* ML
+* GIS
+* database
+
+Do not put all logic into one file.
+
+---
+
+# 30. ERROR HANDLING
+
+The application must continue working if:
+
+* NASA FIRMS is unavailable
+* OSM/Overpass is unavailable
+* ML service is unavailable
+* database temporarily fails
+
+Use graceful fallbacks.
+
+For example:
+
+```text
+NASA FIRMS unavailable
+↓
+Use DEMO DATA
+↓
+Display warning
+↓
+Continue application
+```
+
+Never crash the dashboard because an external API fails.
+
+---
+
+# 31. SECURITY
+
+* Never hardcode API keys.
+* Use environment variables.
+* Validate API input.
+* Sanitize user input.
+* Do not expose secrets to frontend.
+* Add reasonable API error handling.
+
+---
+
+# 32. SIH DEMONSTRATION FLOW
+
+The entire demonstration should be possible in approximately 3 minutes.
+
+### STEP 1
+
+Open Dashboard.
+
+Show:
+
+Active thermal anomalies.
+
+### STEP 2
+
+Open Live Map.
+
+Show multiple thermal hotspots.
+
+### STEP 3
+
+Select a critical hotspot.
+
+Show:
+
+```text
+Likely Industrial Fire
+92% confidence
+87/100 risk
+```
+
+### STEP 4
+
+Explain:
+
+```text
+High thermal intensity
+High FIRMS confidence
+Repeated observations
+Industrial facility nearby
+Night-time observations
+```
+
+### STEP 5
+
+Open Persistence.
+
+Show:
+
+```text
+Detected on 5 days
+HIGH persistence
+```
+
+### STEP 6
+
+Show OSM context.
+
+```text
+Factory       0.4 km
+Power Plant   0.8 km
+Settlement    1.2 km
+```
+
+### STEP 7
+
+Open Risk Breakdown.
+
+Show exactly how 87/100 was calculated.
+
+### STEP 8
+
+Open Copilot.
+
+Ask:
+
+> Why is this incident considered high risk?
+
+Copilot answers from the actual incident data.
+
+### STEP 9
+
+Generate report.
+
+Final story:
+
+**Satellite signal → Context → AI classification → Persistence → Risk → Alert → Decision support**
+
+---
+
+# 33. MVP DEVELOPMENT PRIORITY
+
+DO NOT build everything simultaneously.
+
+Build in this order:
+
+### PHASE 1
+
+Database + deterministic demo data
+
+### PHASE 2
+
+Backend/API
+
+### PHASE 3
+
+Interactive map
+
+### PHASE 4
+
+Incident details
+
+### PHASE 5
+
+Feature engineering
+
+### PHASE 6
+
+Prototype classification engine
+
+### PHASE 7
+
+Persistence engine
+
+### PHASE 8
+
+Risk engine
+
+### PHASE 9
+
+Dashboard
+
+### PHASE 10
+
+Alerts + Analytics
+
+### PHASE 11
+
+AI Copilot
+
+### PHASE 12
+
+Reports
+
+### PHASE 13
+
+NASA FIRMS / OSM live integration
+
+Do not move to the next phase until the previous core functionality works.
+
+---
+
+# 34. FINAL ACCEPTANCE TEST
+
+The MVP is NOT complete until this works:
+
+```text
+Thermal observation
+       ↓
+Data validation
+       ↓
+Feature extraction
+       ↓
+OSM enrichment
+       ↓
+Classification
+       ↓
+Confidence
+       ↓
+Persistence analysis
+       ↓
+Persistence score
+       ↓
+Risk calculation
+       ↓
+Incident creation
+       ↓
+Map marker
+       ↓
+Incident detail
+       ↓
+Explanation
+       ↓
+Alert
+       ↓
+Copilot
+       ↓
+Report
+```
+
+A judge must be able to select ONE hotspot and follow its complete journey through the system.
+
+---
+
+# 35. FINAL ENGINEERING PRINCIPLE
+
+Do not build a visually impressive fake.
+
+Build a smaller system where the important pipeline genuinely works.
+
+The most important demonstration is:
+
+**“We detected a thermal anomaly, enriched it with its surroundings, classified it using thermal + temporal + geospatial features, detected its persistence, calculated its risk, explained the result, and presented it as actionable intelligence.”**
+
+Start implementation now.
+
+First inspect the current environment and create the project structure.
+
+Then implement the database and deterministic demo dataset.
+
+Then build the complete end-to-end pipeline before adding secondary UI features.
+
+Do not ask unnecessary architectural questions when the architecture above already provides the required direction.
+
+If a specified technology is unavailable, use the closest stable alternative while preserving the same functionality and architecture.

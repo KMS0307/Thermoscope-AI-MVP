@@ -1,0 +1,1 @@
+- [OpenAPI Zod compatibility](zod-codegen-compatibility.md) — integer schemas can emit zod.int, incompatible with the workspace’s Zod 3 catalog.

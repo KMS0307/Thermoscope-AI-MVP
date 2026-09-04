@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Thermoscope AI"
+description = "A satellite intelligence command center for exploring thermal anomalies, AI-assisted classifications, persistence patterns, transparent risk scores, alerts, and incident reports using a deterministic FIRMS-style demo dataset."
+version = "1.0.0"
+id = "artifacts/thermoscope-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23402
+
+[services.development]
+run = "pnpm --filter @workspace/thermoscope-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/thermoscope-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/thermoscope-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23402"
+BASE_PATH = "/"
